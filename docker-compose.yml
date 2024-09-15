@@ -1,0 +1,32 @@
+networks:
+  web:
+    external: false
+
+services:
+  watchtower:
+    image: containrrr/watchtower
+    command:
+      - --label-enable
+      - --interval=30
+      - --rolling-restart
+    environment:
+      DOCKER_CONFIG: /config
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - watchtower:/config/
+    labels:
+      - confik.restart=true
+      - confik.file=/confik/watchtower/config.json
+      - confik.contents={"auths":{"ghcr.io":{"auth":"$GHCR_TOKEN"}}}
+  confik:
+    image: confik:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - watchtower:/confik/watchtower
+      - confik:/confik_state
+
+volumes:
+  watchtower:
+    external: false
+  confik:
+    external: false
